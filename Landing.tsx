@@ -102,15 +102,6 @@ const Landing: React.FC = () => {
     }
   }, [user?.id, navigate]);
 
-  // Show loading during OAuth callback processing
-  if (user === undefined) {
-    return (
-      <div className="min-h-screen bg-[#040507] flex items-center justify-center">
-        <p className="text-white">Loading...</p>
-      </div>
-    );
-  }
-
   // Don't render in popup (will be closed by useEffect above)
   if (window.opener && window.opener !== window) {
     return null;
