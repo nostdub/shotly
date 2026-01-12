@@ -27,6 +27,8 @@ export const updateGenerationResult = httpAction(async (ctx, request) => {
       });
     }
 
+    // TODO download image on own server and use this URL instead
+
     // Call updateGenerationResult mutation
     await ctx.runMutation(api.generations.updateGenerationResult, {
       replicateId,

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
 // Get all normal style templates (legacy, kept for compatibility)
@@ -9,11 +10,9 @@ export const getNormalStyles = query({
     return ctx.db
       .query("styleLibrary")
       .collect()
+      .then((styles) => styles.filter((s) => s.categories.includes("normal")))
       .then((styles) =>
-        styles.filter((s: any) => s.categories.includes("normal"))
-      )
-      .then((styles) =>
-        styles.sort((a: any, b: any) => b.createdAt - a.createdAt)
+        styles.sort((a, b) => b._creationTime - a._creationTime)
       );
   },
 });
@@ -25,40 +24,36 @@ export const getTrendingStyles = query({
     return ctx.db
       .query("styleLibrary")
       .collect()
+      .then((styles) => styles.filter((s) => s.categories.includes("trending")))
       .then((styles) =>
-        styles.filter((s: any) => s.categories.includes("trending"))
-      )
-      .then((styles) =>
-        styles.sort((a: any, b: any) => b.createdAt - a.createdAt)
+        styles.sort((a, b) => b._creationTime - a._creationTime)
       );
   },
 });
 
-// Get normal styles paginated (new) - simple offset-based pagination
+// Get normal styles paginated (cursor-based with Convex)
 export const getNormalStylesPaginated = query({
-  args: { limit: v.number(), offset: v.number() },
+  args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
-    const allStyles = await ctx.db.query("styleLibrary").collect();
-
-    const normalStyles = allStyles
-      .filter((s: any) => s.categories && s.categories.includes("normal"))
-      .sort((a: any, b: any) => b.createdAt - a.createdAt);
-
-    return normalStyles.slice(args.offset, args.offset + args.limit);
+    return await ctx.db
+      .query("styleLibrary")
+      .withIndex("by_styleId")
+      .filter((q) => q.neq(q.field("categories"), undefined))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
-// Get trending styles paginated (new) - simple offset-based pagination
+// Get trending styles paginated (cursor-based with Convex)
 export const getTrendingStylesPaginated = query({
-  args: { limit: v.number(), offset: v.number() },
+  args: { paginationOpts: paginationOptsValidator },
   handler: async (ctx, args) => {
-    const allStyles = await ctx.db.query("styleLibrary").collect();
-
-    const trendingStyles = allStyles
-      .filter((s: any) => s.categories && s.categories.includes("trending"))
-      .sort((a: any, b: any) => b.createdAt - a.createdAt);
-
-    return trendingStyles.slice(args.offset, args.offset + args.limit);
+    return await ctx.db
+      .query("styleLibrary")
+      .withIndex("by_styleId")
+      .filter((q) => q.neq(q.field("categories"), undefined))
+      .order("desc")
+      .paginate(args.paginationOpts);
   },
 });
 
@@ -119,7 +114,6 @@ export const createStyleTemplate = mutation({
       width: args.width,
       height: args.height,
       mimeType: "image/webp",
-      createdAt: Date.now(),
     });
   },
 });

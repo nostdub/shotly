@@ -40,13 +40,12 @@ export const insertMedia = mutation({
       userId: userId ?? "anonymous",
       name: args.name,
       type: args.type,
-      mimeType: args.mimeType ?? null,
-      width: args.width ?? null,
-      height: args.height ?? null,
-      sizeBytes: args.sizeBytes ?? null,
-      urls: args.urls ?? null,
-      createdAt: Date.now(),
-    } as any;
+      mimeType: args.mimeType,
+      width: args.width,
+      height: args.height,
+      sizeBytes: args.sizeBytes,
+      urls: args.urls,
+    };
     const id = await ctx.db.insert("media", doc);
     return id;
   },
@@ -81,14 +80,12 @@ export const getProductImagesPaginated = query({
       .collect();
 
     let productMedia = allMedia
-      .filter((m: any) => m.type === "product_upload")
-      .sort((a: any, b: any) => b.createdAt - a.createdAt);
+      .filter((m) => m.type === "product_upload")
+      .sort((a, b) => b._creationTime - a._creationTime);
 
     // Si cursor fourni, skip jusqu'au cursor (exclusif)
     if (args.cursor) {
-      const cursorIndex = productMedia.findIndex(
-        (p: any) => p._id === args.cursor
-      );
+      const cursorIndex = productMedia.findIndex((p) => p._id === args.cursor);
       if (cursorIndex >= 0) {
         productMedia = productMedia.slice(cursorIndex + 1);
       }

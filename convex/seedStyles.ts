@@ -4,7 +4,16 @@ import seedData from "./seed-styles-data.json";
 export const seedAllStyles = mutation({
   args: {},
   handler: async (ctx) => {
-    const styles = seedData as any;
+    const styles = seedData as Array<{
+      styleId: string;
+      fileHash: string;
+      categories?: string[];
+      tags: string[];
+      urls: { full: string; small: string; preview: string };
+      width: number;
+      height: number;
+      description: string;
+    }>;
     let count = 0;
     for (const style of styles) {
       // Vérifier si fileHash existe déjà (détecte vrais duplicates)

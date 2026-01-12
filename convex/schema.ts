@@ -44,10 +44,8 @@ export default defineSchema({
         preview: v.string(),
       })
     ),
-    createdAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_createdAt", ["createdAt"])
     .index("by_type", ["type"]),
 
   // Style Library: Public style templates available to all users
@@ -65,11 +63,9 @@ export default defineSchema({
     width: v.number(),
     height: v.number(),
     mimeType: v.optional(v.string()),
-    createdAt: v.number(),
   })
     .index("by_styleId", ["styleId"])
-    .index("by_fileHash", ["fileHash"])
-    .index("by_createdAt", ["createdAt"]),
+    .index("by_fileHash", ["fileHash"]),
 
   // Generations: Track all generated images
   generations: defineTable({
@@ -82,9 +78,7 @@ export default defineSchema({
     mediaId: v.optional(v.string()), // _id of generated media (set when status="succeeded")
     status: v.string(), // "starting", "processing", "succeeded", "failed", "canceled"
     error: v.optional(v.string()), // Error message if failed
-    createdAt: v.number(), // Timestamp
   })
     .index("by_userId", ["userId"])
-    .index("by_replicateId", ["replicateId"])
-    .index("by_createdAt", ["createdAt"]),
+    .index("by_replicateId", ["replicateId"]),
 });

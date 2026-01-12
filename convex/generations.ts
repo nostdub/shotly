@@ -133,10 +133,10 @@ export const generateImageAsync = action({
     }
 
     // Get product and style from DB
-    const product: any = await ctx.runQuery(api.generations.getMediaById, {
+    const product = await ctx.runQuery(api.generations.getMediaById, {
       mediaId: args.productId,
     });
-    const style: any = await ctx.runQuery(api.generations.getStyleById, {
+    const style = await ctx.runQuery(api.generations.getStyleById, {
       styleId: args.styleId,
     });
 
@@ -193,13 +193,13 @@ export const generateImageAsync = action({
       );
 
       if (!response.ok) {
-        const error: any = await response.json();
+        const error = (await response.json()) as Record<string, unknown>;
         throw new Error(
-          `Replicate error: ${error.detail || response.statusText}`
+          `Replicate error: ${(error.detail as string | undefined) || response.statusText}`
         );
       }
 
-      const prediction: any = await response.json();
+      const prediction = (await response.json()) as Record<string, unknown>;
 
       // Create generation record in DB
       const generationId: string = await ctx.runMutation(

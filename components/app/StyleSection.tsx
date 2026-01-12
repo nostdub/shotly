@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Search } from 'lucide-react';
-import { useQuery } from 'convex/react';
+import { usePaginatedQuery, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { Doc } from '@/convex/_generated/dataModel';
 
 const searchInputStyles = `
   input[type="text"]::placeholder {
@@ -23,7 +24,7 @@ const StyleCard = ({
   isSelected,
   onSelect
 }: {
-  style: any;
+  style: Doc<'styleLibrary'>;
   isSelected: boolean;
   onSelect: () => void;
 }) => {
@@ -71,7 +72,7 @@ const StyleGrid = ({
   activeTab,
   hasMore,
 }: {
-  styles: any[];
+  styles: Doc<'styleLibrary'>[];
   selectedStyleId: string | null;
   onSelectStyle: (styleId: string) => void;
   isLoading: boolean;
@@ -137,10 +138,6 @@ const StyleSection: React.FC<{
   const [activeTab, setActiveTab] = useState<'trending' | 'suggested' | 'custom'>('suggested');
   const [selectedStyleId, setSelectedStyleId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [normalOffset, setNormalOffset] = useState(0);
-  const [trendingOffset, setTrendingOffset] = useState(0);
-  const [accumulatedNormal, setAccumulatedNormal] = useState<any[]>([]);
-  const [accumulatedTrending, setAccumulatedTrending] = useState<any[]>([]);
 
   // ============ LOAD STATE FROM LOCALSTORAGE ============
   useEffect(() => {
@@ -166,48 +163,24 @@ const StyleSection: React.FC<{
     }
   }, [selectedStyle]);
 
-  // ============ PAGINATION QUERIES - Manual offset-based ============
-  const normalPageResults = useQuery(api.styles.getNormalStylesPaginated, {
-    limit: PAGE_SIZE,
-    offset: normalOffset,
-  });
+  // ============ PAGINATION QUERIES - Using usePaginatedQuery ============
+  const { results: normalStyles, status: normalStatus, loadMore: loadMoreNormal } = usePaginatedQuery(
+    api.styles.getNormalStylesPaginated,
+    {},
+    { initialNumItems: PAGE_SIZE }
+  );
 
-  const trendingPageResults = useQuery(api.styles.getTrendingStylesPaginated, {
-    limit: PAGE_SIZE,
-    offset: trendingOffset,
-  });
-
-  // Accumulate normal styles
-  useEffect(() => {
-    if (normalPageResults && normalPageResults.length > 0) {
-      setAccumulatedNormal((prev) => {
-        // Avoid duplicates by checking if we already have these IDs
-        const existingIds = new Set(prev.map((s) => s._id));
-        const newStyles = normalPageResults.filter((s: any) => !existingIds.has(s._id));
-        return [...prev, ...newStyles];
-      });
-    }
-  }, [normalPageResults]);
-
-  // Accumulate trending styles
-  useEffect(() => {
-    if (trendingPageResults && trendingPageResults.length > 0) {
-      setAccumulatedTrending((prev) => {
-        const existingIds = new Set(prev.map((s) => s._id));
-        const newStyles = trendingPageResults.filter((s: any) => !existingIds.has(s._id));
-        return [...prev, ...newStyles];
-      });
-    }
-  }, [trendingPageResults]);
+  const { results: trendingStyles, status: trendingStatus, loadMore: loadMoreTrending } = usePaginatedQuery(
+    api.styles.getTrendingStylesPaginated,
+    {},
+    { initialNumItems: PAGE_SIZE }
+  );
 
   // Custom styles from user
-  const customStyles = useQuery(api.styles.getUserStyleUploads);
-
-  // Note: Validation done implicitly - if style doesn't exist in render, it will show "unavailable"
-  // This is handled by the card's onError handler
+  const customStylesData = useQuery(api.styles.getUserStyleUploads);
 
   // ============ HANDLE STYLE SELECTION ============
-  const handleSelectStyle = (styleId: string, style: any) => {
+  const handleSelectStyle = (styleId: string, style: Doc<'styleLibrary'>) => {
     const isDeselecting = selectedStyleId === styleId;
 
     if (isDeselecting) {
@@ -228,10 +201,10 @@ const StyleSection: React.FC<{
   };
 
   // ============ FILTER NORMAL STYLES BY SEARCH ============
-  const filteredNormalStyles = accumulatedNormal?.filter((style: any) =>
+  const filteredNormalStyles = normalStyles?.filter((style) =>
     !searchQuery ||
     style.styleId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    style.tags?.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    style.tags?.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
     style.description?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
@@ -301,15 +274,15 @@ const StyleSection: React.FC<{
                 styles={filteredNormalStyles}
                 selectedStyleId={selectedStyleId}
                 onSelectStyle={(styleId) => {
-                  const style = accumulatedNormal?.find((s: any) => s._id === styleId);
+                  const style = normalStyles?.find((s) => s._id === styleId);
                   if (style) {
                     handleSelectStyle(styleId, style);
                   }
                 }}
-                isLoading={normalPageResults === undefined}
-                onLoadMore={() => setNormalOffset(prev => prev + PAGE_SIZE)}
+                isLoading={normalStatus === 'LoadingFirstPage' || normalStatus === 'LoadingMore'}
+                onLoadMore={() => loadMoreNormal(PAGE_SIZE)}
                 activeTab="suggested"
-                hasMore={normalPageResults?.length === PAGE_SIZE}
+                hasMore={normalStatus === 'CanLoadMore'}
               />
             </>
           )}
@@ -317,33 +290,33 @@ const StyleSection: React.FC<{
           {/* ============ TRENDING TAB ============ */}
           {activeTab === 'trending' && (
             <StyleGrid
-              styles={accumulatedTrending || []}
+              styles={trendingStyles || []}
               selectedStyleId={selectedStyleId}
               onSelectStyle={(styleId) => {
-                const style = accumulatedTrending?.find((s: any) => s._id === styleId);
+                const style = trendingStyles?.find((s) => s._id === styleId);
                 if (style) {
                   handleSelectStyle(styleId, style);
                 }
               }}
-              isLoading={trendingPageResults === undefined}
-              onLoadMore={() => setTrendingOffset(prev => prev + PAGE_SIZE)}
+              isLoading={trendingStatus === 'LoadingFirstPage' || trendingStatus === 'LoadingMore'}
+              onLoadMore={() => loadMoreTrending(PAGE_SIZE)}
               activeTab="trending"
-              hasMore={trendingPageResults?.length === PAGE_SIZE}
+              hasMore={trendingStatus === 'CanLoadMore'}
             />
           )}
 
           {/* ============ CUSTOM TAB ============ */}
           {activeTab === 'custom' && (
             <StyleGrid
-              styles={customStyles || []}
+              styles={(customStylesData || []) as unknown as Doc<'styleLibrary'>[]}
               selectedStyleId={selectedStyleId}
               onSelectStyle={(styleId) => {
-                const style = customStyles?.find((s: any) => s._id === styleId);
+                const style = customStylesData?.find((s) => s._id === styleId);
                 if (style) {
-                  handleSelectStyle(styleId, style);
+                  handleSelectStyle(styleId, style as unknown as Doc<'styleLibrary'>);
                 }
               }}
-              isLoading={customStyles === undefined}
+              isLoading={customStylesData === undefined}
               onLoadMore={() => { }}
               activeTab="custom"
               hasMore={false}
