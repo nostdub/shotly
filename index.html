@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sellest - Create stop-scrolling product visuals in 3 clicks.</title>
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="Sellest - Create stop-scrolling product visuals in 3 clicks." />
+    <meta property="og:description" content="Import your product, guided generations with creative templates, instant results. No creative block. Perfect for designers, e-commerce, and brands." />
+    <meta property="og:image" content="https://sellest.io/og-banner.webp" />
+    <meta property="og:url" content="https://sellest.io" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sellest - Create stop-scrolling product visuals in 3 clicks." />
+    <meta name="twitter:description" content="Import your product, guided generations with creative templates, instant results. No creative block. Perfect for designers, e-commerce, and brands." />
+    <meta name="twitter:image" content="https://sellest.io/og-banner.webp" />
+    
+    <!-- SEO -->
+    <meta name="description" content="Import your product, guided generations with creative templates, instant results. No creative block. Perfect for designers, e-commerce, and brands." />
+    <meta name="keywords" content="AI product photography, product visuals, e-commerce, design, AI marketing" />
+    <meta name="author" content="Sellest" />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Sellest",
+      "description": "AI-powered product visual generator. Create stunning product photography in seconds without creative block.",
+      "url": "https://sellest.io",
+      "applicationCategory": "MultimediaApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "url": "https://sellest.io"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Sellest"
+      },
+      "operatingSystem": "Web",
+      "inLanguage": "en-US"
+    }
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#4F46E5', // Indigo 600
+              secondary: '#10B981', // Emerald 500
+              dark: '#111827', // Gray 900
+              'neon-yellow': '#DFFF00', // Custom neon from design
+              'navy-deep': '#020412', // Deep background
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            animation: {
+              'spin-slow': 'spin 12s linear infinite',
+            },
+          },
+        },
+      };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      html, body { 
+        font-family: 'Inter', sans-serif;
+        background-color: #040507;
+        margin: 0;
+        padding: 0;
+      }
+      /* Custom scrollbar for better aesthetics */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #1a1a1a; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #404040; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #606060; 
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
